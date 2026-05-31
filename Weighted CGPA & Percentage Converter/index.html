@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weighted CGPA &amp; Percentage Converter</title>
+  <meta name="description" content="Calculate your weighted CGPA and convert it to percentage using Mumbai University C-Scheme or standard 10-point system formulas. Generate formatted application tables for internships." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & Base ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f4f5f7;
+      --surface:   #ffffff;
+      --border:    #e2e4e9;
+      --text:      #1a1d23;
+      --text-secondary: #6b7280;
+      --accent:    #4a7cff;
+      --accent-hover: #3760d4;
+      --accent-soft: #eef2ff;
+      --danger:    #e5484d;
+      --danger-hover: #cd2b31;
+      --radius:    12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow:    0 4px 24px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg: 0 12px 48px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.04);
+      --transition: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .page-wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    /* ── Header ──────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .header__badge svg { width: 14px; height: 14px; }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: var(--text);
+    }
+    .header p {
+      margin-top: 8px;
+      font-size: .925rem;
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── Card ────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .card__title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card__title svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+
+    /* ── Semester Row ────────────────────────────────────── */
+    .semester-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      animation: slideIn .3s var(--transition) both;
+      position: relative;
+    }
+    .semester-row::before {
+      content: attr(data-index);
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: .65rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      opacity: .45;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .field label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      letter-spacing: .02em;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: .875rem;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,124,255,.15);
+    }
+    .field input::placeholder { color: #c4c8d0; }
+
+    /* Remove button */
+    .btn-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      flex-shrink: 0;
+      margin-bottom: 1px;
+    }
+    .btn-remove:hover { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
+    .btn-remove svg { width: 16px; height: 16px; }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn svg { width: 16px; height: 16px; }
+
+    .btn--primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(74,124,255,.3);
+    }
+    .btn--primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,124,255,.3); }
+    .btn--primary:active { transform: translateY(0); }
+
+    .btn--secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn--secondary:hover { background: var(--bg); border-color: #ccc; }
+
+    /* ── Formula select ──────────────────────────────────── */
+    .formula-section {
+      margin-top: 4px;
+    }
+    .formula-section .field select {
+      max-width: 100%;
+      padding: 10px 14px;
+    }
+
+    /* ── Results ─────────────────────────────────────────── */
+    .results-panel {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .5s ease, transform .5s ease;
+      pointer-events: none;
+    }
+    .results-panel.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .result-stat {
+      padding: 20px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      text-align: center;
+    }
+    .result-stat__label {
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+    }
+    .result-stat__value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+    .result-stat__sub {
+      font-size: .8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ── Application Table ───────────────────────────────── */
+    .app-table-section {
+      margin-top: 8px;
+    }
+    .app-table-section h3 {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .app-table-section h3 svg { width: 16px; height: 16px; color: var(--accent); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+    thead th {
+      background: var(--bg);
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #fafbfc; }
+
+    .formula-cell {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      font-size: .8rem;
+      color: var(--accent);
+    }
+
+    /* Copy button */
+    .copy-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .btn--copy {
+      font-size: .78rem;
+      padding: 7px 14px;
+      background: var(--bg);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn--copy:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+    .btn--copy.copied { background: #ecfdf5; color: #059669; border-color: #059669; }
+    .btn--copy svg { width: 14px; height: 14px; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      font-size: .78rem;
+      color: var(--text-secondary);
+      opacity: .6;
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .page-wrapper { padding: 28px 14px 60px; }
+      .card { padding: 20px 16px; }
+      .semester-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .semester-row .field:first-child { grid-column: 1 / -1; }
+      .btn-remove {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border: none;
+      }
+      .result-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.4rem; }
+      table { font-size: .78rem; }
+      thead th, tbody td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__badge">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c6 3 6 3 12 0v-5"/></svg>
+      Academic Tool
+    </div>
+    <h1>Weighted CGPA &amp; Percentage Converter</h1>
+    <p>Enter your semester-wise SGPI and credits to compute a weighted CGPA, then convert it using your university's formula.</p>
+  </header>
+
+  <!-- Semester Inputs Card -->
+  <section class="card" id="input-card">
+    <div class="card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Semester Data
+    </div>
+
+    <div id="semester-container"></div>
+
+    <div class="actions">
+      <button class="btn btn--secondary" id="btn-add" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Semester
+      </button>
+    </div>
+  </section>
+
+  <!-- Formula & Calculate Card -->
+  <section class="card">
+    <div class="card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Conversion Formula
+    </div>
+
+    <div class="formula-section">
+      <div class="field">
+        <label for="formula-select">University Conversion Formula</label>
+        <select id="formula-select">
+          <option value="A">Mumbai University C-Scheme v1 — % = (7.4 × CGPA) + 12</option>
+          <option value="B">Mumbai University C-Scheme v2 — % = (7.1 × CGPA) + 11</option>
+          <option value="C">Standard 10-Point System — % = CGPA × 9.5</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:20px;">
+      <button class="btn btn--primary" id="btn-calculate" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Calculate &amp; Generate
+      </button>
+    </div>
+  </section>
+
+  <!-- Results Card (hidden until calculated) -->
+  <section class="card results-panel" id="results-card">
+    <div class="card__title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Results
+    </div>
+
+    <div class="result-grid">
+      <div class="result-stat">
+        <div class="result-stat__label">Weighted CGPA</div>
+        <div class="result-stat__value" id="result-cgpa">—</div>
+        <div class="result-stat__sub" id="result-credits-info"></div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat__label">Percentage</div>
+        <div class="result-stat__value" id="result-pct">—</div>
+        <div class="result-stat__sub" id="result-formula-info"></div>
+      </div>
+    </div>
+
+    <!-- Application Table -->
+    <div class="app-table-section">
+      <h3>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Generated Application Table
+      </h3>
+      <div style="overflow-x:auto;">
+        <table id="app-table">
+          <thead>
+            <tr>
+              <th>Year / Sem</th>
+              <th>CGPA</th>
+              <th>Conversion Factor Formula</th>
+              <th>% of Marks (Converted)</th>
+            </tr>
+          </thead>
+          <tbody id="app-table-body"></tbody>
+        </table>
+      </div>
+      <div class="copy-wrap">
+        <button class="btn--copy" id="btn-copy" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Table
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Built for internship applications · Weighted average precision</div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ── State ──────────────────────────────────────────────
+  let semesterCount = 0;
+  const container = document.getElementById("semester-container");
+
+  // ── Create a semester row ──────────────────────────────
+  function createSemesterRow(index) {
+    semesterCount++;
+    const id = semesterCount;
+    const row = document.createElement("div");
+    row.className = "semester-row";
+    row.dataset.id = id;
+    row.dataset.index = index;
+
+    row.innerHTML = `
+      <div class="field">
+        <label for="name-${id}">Semester Name</label>
+        <input type="text" id="name-${id}" placeholder="e.g. Sem ${index}" value="Sem ${index}" />
+      </div>
+      <div class="field">
+        <label for="sgpi-${id}">SGPI / GPA</label>
+        <input type="number" id="sgpi-${id}" step="0.01" min="0" max="10" placeholder="0.00" />
+      </div>
+      <div class="field">
+        <label for="credits-${id}">Total Credits</label>
+        <input type="number" id="credits-${id}" step="1" min="0" placeholder="0" />
+      </div>
+      <button class="btn-remove" type="button" title="Remove semester" aria-label="Remove semester">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    `;
+
+    // Wire remove
+    row.querySelector(".btn-remove").addEventListener("click", () => {
+      if (container.children.length <= 1) return;
+      row.style.transition = "opacity .2s, transform .2s";
+      row.style.opacity = "0";
+      row.style.transform = "translateY(-6px)";
+      setTimeout(() => {
+        row.remove();
+        reIndex();
+        liveUpdate();
+      }, 200);
+    });
+
+    // Live update on any input change
+    row.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", liveUpdate);
+    });
+
+    return row;
+  }
+
+  // ── Re-index labels ───────────────────────────────────
+  function reIndex() {
+    [...container.children].forEach((row, i) => {
+      row.dataset.index = i + 1;
+    });
+  }
+
+  // ── Add semester ──────────────────────────────────────
+  function addSemester() {
+    const idx = container.children.length + 1;
+    container.appendChild(createSemesterRow(idx));
+  }
+
+  // ── Gather data ───────────────────────────────────────
+  function gatherData() {
+    const rows = [...container.children];
+    const semesters = [];
+    let totalGradePoints = 0;
+    let totalCredits = 0;
+    let valid = true;
+
+    for (const row of rows) {
+      const id = row.dataset.id;
+      const name = document.getElementById(`name-${id}`).value.trim() || `Sem ${row.dataset.index}`;
+      const sgpi = parseFloat(document.getElementById(`sgpi-${id}`).value);
+      const credits = parseFloat(document.getElementById(`credits-${id}`).value);
+
+      if (isNaN(sgpi) || isNaN(credits) || credits <= 0) {
+        valid = false;
+        continue;
+      }
+
+      const gp = sgpi * credits;
+      totalGradePoints += gp;
+      totalCredits += credits;
+      semesters.push({ name, sgpi, credits, gp });
+    }
+
+    const cgpa = totalCredits > 0 ? totalGradePoints / totalCredits : 0;
+    return { semesters, cgpa: Math.round(cgpa * 100) / 100, totalCredits, valid: valid && semesters.length > 0 };
+  }
+
+  // ── Formula helpers ───────────────────────────────────
+  const FORMULAS = {
+    A: { label: "Mumbai University C-Scheme v1", calc: c => 7.4 * c + 12, str: c => `7.4 × ${c} + 12` },
+    B: { label: "Mumbai University C-Scheme v2", calc: c => 7.1 * c + 11, str: c => `7.1 × ${c} + 11` },
+    C: { label: "Standard 10-Point System",      calc: c => c * 9.5,       str: c => `${c} × 9.5` },
+  };
+
+  function getFormula() {
+    return FORMULAS[document.getElementById("formula-select").value];
+  }
+
+  // ── Render results ────────────────────────────────────
+  function renderResults() {
+    const { semesters, cgpa, totalCredits, valid } = gatherData();
+    const panel = document.getElementById("results-card");
+
+    if (!valid) {
+      panel.classList.remove("visible");
+      return;
+    }
+
+    const formula = getFormula();
+    const pct = Math.round(formula.calc(cgpa) * 100) / 100;
+
+    // Stats
+    document.getElementById("result-cgpa").textContent = cgpa.toFixed(2);
+    document.getElementById("result-credits-info").textContent = `across ${totalCredits} total credits`;
+    document.getElementById("result-pct").textContent = pct.toFixed(2) + "%";
+    document.getElementById("result-formula-info").textContent = formula.label;
+
+    // Application Table
+    const tbody = document.getElementById("app-table-body");
+    tbody.innerHTML = "";
+
+    for (const sem of semesters) {
+      const semPct = Math.round(formula.calc(sem.sgpi) * 100) / 100;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(sem.name)}</td>
+        <td>${sem.sgpi.toFixed(2)}</td>
+        <td class="formula-cell">${formula.str(sem.sgpi.toFixed(2))}</td>
+        <td>${semPct.toFixed(2)}%</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // Overall row
+    const overallTr = document.createElement("tr");
+    overallTr.style.fontWeight = "600";
+    overallTr.innerHTML = `
+      <td>Overall (Weighted)</td>
+      <td>${cgpa.toFixed(2)}</td>
+      <td class="formula-cell">${formula.str(cgpa.toFixed(2))}</td>
+      <td>${pct.toFixed(2)}%</td>
+    `;
+    tbody.appendChild(overallTr);
+
+    panel.classList.add("visible");
+  }
+
+  // ── Live update (debounced) ───────────────────────────
+  let liveTimer;
+  function liveUpdate() {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(() => {
+      const panel = document.getElementById("results-card");
+      if (panel.classList.contains("visible")) {
+        renderResults();
+      }
+    }, 150);
+  }
+
+  // ── Copy table ────────────────────────────────────────
+  function copyTable() {
+    const table = document.getElementById("app-table");
+    const rows = table.querySelectorAll("tr");
+    let text = "";
+    rows.forEach(row => {
+      const cells = [...row.querySelectorAll("th, td")].map(c => c.textContent.trim());
+      text += cells.join("\t") + "\n";
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById("btn-copy");
+      btn.classList.add("copied");
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove("copied");
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Table`;
+      }, 2000);
+    });
+  }
+
+  // ── Escape HTML ───────────────────────────────────────
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ── Init ──────────────────────────────────────────────
+  addSemester();
+  addSemester();
+
+  document.getElementById("btn-add").addEventListener("click", addSemester);
+  document.getElementById("btn-calculate").addEventListener("click", renderResults);
+  document.getElementById("btn-copy").addEventListener("click", copyTable);
+  document.getElementById("formula-select").addEventListener("change", () => {
+    const panel = document.getElementById("results-card");
+    if (panel.classList.contains("visible")) renderResults();
+  });
+})();
+</script>
+
+</body>
+</html>

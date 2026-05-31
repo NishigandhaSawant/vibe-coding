@@ -1,0 +1,62 @@
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+}
+
+/* Theme Definitions */
+.theme-bw { --bg: #000; --text: #fff; }
+.theme-neon { --bg: #1a1a1a; --text: #39ff14; }
+.theme-sunset { --bg: #ff5e62; --text: #ffedbc; }
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Courier New', Courier, monospace;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+}
+
+.marquee-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+    gap: 50px;
+}
+
+.marquee-container {
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 5rem;
+    font-weight: bold;
+}
+
+/* Animation: Left to Right */
+.ltr span {
+    display: inline-block;
+    animation: scrollLTR 10s linear infinite;
+}
+
+/* Animation: Right to Left */
+.rtl span {
+    display: inline-block;
+    animation: scrollRTL 10s linear infinite;
+}
+
+@keyframes scrollLTR {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+}
+
+@keyframes scrollRTL {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}

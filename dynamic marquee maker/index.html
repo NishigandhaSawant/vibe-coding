@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Marquee Maker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-bw"> <div class="controls">
+        <input type="text" id="userInput" placeholder="Type something cool...">
+        <select id="themeSelect">
+            <option value="theme-bw">Black & White</option>
+            <option value="theme-neon">Neon Night</option>
+            <option value="theme-sunset">Sunset Glow</option>
+        </select>
+    </div>
+
+    <div class="marquee-wrapper">
+        <div class="marquee-container ltr">
+            <span id="displayLTR">Your text here...</span>
+        </div>
+        
+        <div class="marquee-container rtl">
+            <span id="displayRTL">Your text here...</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
